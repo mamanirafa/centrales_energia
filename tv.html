@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>APAGÓN · Panel docente</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="tv">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="assets/logo.svg" alt="">
+      <div><b>APAGÓN</b><small>Centrales de energía</small></div>
+    </div>
+    <div class="grow"></div>
+    <div class="row" style="gap:8px">
+      <span id="timer" class="timer">00:00</span>
+      <button class="btn sm" id="tStart"></button>
+      <button class="btn sec sm" id="tReset">↺</button>
+      <button class="btn sec sm" id="tPlus">+1′</button>
+    </div>
+    <span id="mode" class="mode"></span>
+    <button class="btn sec sm" id="lockBtn" title="PIN">🔒</button>
+  </header>
+
+  <div class="tvgrid">
+    <nav class="tvnav" id="nav"></nav>
+    <section class="stage" id="stage"></section>
+    <aside class="side" id="side"></aside>
+  </div>
+
+  <div id="pinModal" class="modal hidden">
+    <div class="card glow">
+      <h2 data-i18n="tv.title">Panel docente</h2>
+      <p class="mut small" data-i18n="tv.lockedHint"></p>
+      <label data-i18n="tv.pin">PIN docente</label>
+      <input type="text" id="pinInput" inputmode="numeric" autocomplete="off">
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="pinOk" data-i18n="tv.enter">Entrar</button>
+        <button class="btn sec" id="pinView" data-i18n="tv.view">Solo ver</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/tv.js"></script>
+</body>
+</html>
