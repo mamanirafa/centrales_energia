@@ -1,17 +1,20 @@
 /* =========================================================
    APAGÓN EN USHUAIA · Centrales de generación — Contenidos
-   Editá este archivo para cambiar centrales, piezas, dilemas o puntajes.
+   Editá este archivo para cambiar centrales, piezas, preguntas o puntajes.
    ========================================================= */
 
+/* who: 'todos' = responde cada estudiante · 'tecnico'/'investigador' = envía ese rol por el equipo */
 const PHASES = [
-  { id: 'registro',   icon: '🪪', min: 5,  name: 'Registro' },
-  { id: 'apagon',     icon: '🚨', min: 6,  name: 'El apagón' },
-  { id: 'taller',     icon: '🛠️', min: 18, name: 'Taller de montaje' },
-  { id: 'ficha',      icon: '🕵️', min: 12, name: 'Sabotaje' },
-  { id: 'inspeccion', icon: '🔍', min: 22, name: 'Inspección' },
-  { id: 'consejo',    icon: '⚖️', min: 12, name: 'Consejo energético' },
-  { id: 'cierre',     icon: '🏅', min: 5,  name: 'Certificado' }
+  { id: 'registro',   icon: '🪪', min: 5,  name: 'Registro',           who: 'todos' },
+  { id: 'apagon',     icon: '🚨', min: 12, name: 'El apagón',          who: 'todos' },
+  { id: 'taller',     icon: '🛠️', min: 15, name: 'Taller de montaje',  who: 'tecnico' },
+  { id: 'ficha',      icon: '🕵️', min: 10, name: 'Sabotaje',           who: 'investigador' },
+  { id: 'inspeccion', icon: '🔍', min: 20, name: 'Inspección',         who: 'todos' },
+  { id: 'consejo',    icon: '⚖️', min: 12, name: 'Consejo energético', who: 'todos' },
+  { id: 'cierre',     icon: '🏅', min: 6,  name: 'Certificado',        who: 'todos' }
 ];
+
+const MAX_MEMBERS = 6;
 
 /* Medios técnicos (piezas que se arman en el taller) */
 const COMPONENTS = {
@@ -71,156 +74,233 @@ const TRAPS = {
 
 /* 6 centrales → 6 equipos (se asignan por sorteo) */
 const TEAMS = [
-  { id: 'termica', emoji: '🔥', color: '#fb923c', size: 5, trap: 'ambiente', renewable: false,
+  { id: 'termica', emoji: '🔥', color: '#fb923c', size: 6, trap: 'ambiente', renewable: false,
     name: 'Central Térmica', input: '⛽ Gas natural (o carbón, o petróleo)',
     chain: [['caldera', 'qt'], ['turbina_vapor', 'tm'], ['generador', 'me'], ['transformador', 'up']],
     decoys: ['tuberia', 'paneles'],
     ideas: 'cómo funciona una central térmica, combustibles fósiles, contaminación, central de Ushuaia' },
-  { id: 'hidraulica', emoji: '💧', color: '#38bdf8', size: 5, trap: 'contexto', renewable: true,
+  { id: 'hidraulica', emoji: '💧', color: '#38bdf8', size: 6, trap: 'contexto', renewable: true,
     name: 'Central Hidráulica', input: '🏞️ Agua de un río',
     chain: [['represa', 'pot'], ['tuberia', 'pc'], ['turbina_hidraulica', 'cm'], ['generador', 'me'], ['transformador', 'up']],
     decoys: ['caldera', 'multiplicadora'],
     ideas: 'represas de Argentina, El Chocón, Yacyretá, cómo funciona una represa' },
-  { id: 'nuclear', emoji: '☢️', color: '#a3e635', size: 5, trap: 'energia', renewable: false,
+  { id: 'nuclear', emoji: '☢️', color: '#a3e635', size: 6, trap: 'energia', renewable: false,
     name: 'Central Nuclear', input: '🪨 Uranio',
     chain: [['reactor', 'nt'], ['gen_vapor', 'tt'], ['turbina_vapor', 'tm'], ['generador', 'me'], ['transformador', 'up']],
     decoys: ['represa', 'inversor'],
     ideas: 'Atucha, central nuclear Embalse, CAREM, cómo funciona una central nuclear, residuos' },
-  { id: 'eolica', emoji: '🌬️', color: '#5eead4', size: 5, trap: 'cifra', renewable: true,
+  { id: 'eolica', emoji: '🌬️', color: '#5eead4', size: 6, trap: 'cifra', renewable: true,
     name: 'Central Eólica', input: '💨 Viento',
     chain: [['rotor', 'cm'], ['multiplicadora', 'mm'], ['generador', 'me'], ['transformador', 'up']],
     decoys: ['turbina_hidraulica', 'baterias'],
     ideas: 'parques eólicos de la Patagonia, partes de un aerogenerador, viento en Tierra del Fuego' },
-  { id: 'solar', emoji: '☀️', color: '#facc15', size: 5, trap: 'intrusa', renewable: true,
+  { id: 'solar', emoji: '☀️', color: '#facc15', size: 6, trap: 'intrusa', renewable: true,
     name: 'Central Solar', input: '🌞 Luz del sol',
     chain: [['paneles', 're'], ['inversor', 'ca'], ['transformador', 'up']],
     decoys: ['generador', 'rotor'],
     ideas: 'Parque Solar Cauchari (Jujuy), cómo funciona un panel solar, horas de sol en Ushuaia' },
-  { id: 'biomasa', emoji: '🌱', color: '#c084fc', size: 5, trap: 'orden', renewable: true,
+  { id: 'biomasa', emoji: '🌱', color: '#c084fc', size: 6, trap: 'orden', renewable: true,
     name: 'Central de Biomasa', input: '🍂 Basura orgánica (restos de comida, estiércol)',
     chain: [['biodigestor', 'bq'], ['gasometro', 'aq'], ['motor', 'qm'], ['generador', 'me'], ['transformador', 'up']],
     decoys: ['reactor', 'paneles'],
     ideas: 'qué es un biodigestor, biogás, INTA biodigestores, residuos orgánicos' }
 ];
 
+/* Roles: se pueden repetir dentro del equipo (hasta 6 integrantes) */
 const ROLES = [
-  { id: 'jefe', emoji: '🎤', name: 'Jefe/a de central', desc: 'Organiza al equipo y habla en voz alta frente a la clase.' },
-  { id: 'tecnico', emoji: '🛠️', name: 'Técnico/a de montaje', desc: 'Arma la cadena de piezas en el taller y la envía.' },
-  { id: 'investigador', emoji: '📚', name: 'Investigador/a', desc: 'Busca datos en el material de lectura o en internet y carga la ficha.' },
-  { id: 'inspector', emoji: '🔍', name: 'Inspector/a', desc: 'Descubre las trampas de las otras centrales y envía la respuesta.' }
+  { id: 'jefe', emoji: '🎤', name: 'Jefe/a de central', desc: 'Organiza al equipo y lee en voz alta la ficha en la Inspección.' },
+  { id: 'tecnico', emoji: '🛠️', name: 'Técnico/a de montaje', desc: 'Envía la cadena de piezas del equipo en el Taller.' },
+  { id: 'investigador', emoji: '📚', name: 'Investigador/a', desc: 'Busca datos y envía la ficha del Sabotaje.' },
+  { id: 'inspector', emoji: '🔍', name: 'Inspector/a', desc: 'Guía al equipo para descubrir las trampas de las otras centrales.' }
 ];
 
-/* Pistas para justificar la inspección */
-const CLUES = [
-  { id: 'medio',     emoji: '⚙️', name: 'Pieza', q: '¿Esa pieza es de esta central?' },
-  { id: 'orden',     emoji: '🔄', name: 'Orden', q: '¿Los pasos están en orden?' },
-  { id: 'energia',   emoji: '⚡', name: 'Energía', q: '¿Esa pieza transforma esa energía?' },
-  { id: 'renovable', emoji: '♻️', name: 'Renovable o no', q: '¿El recurso se acaba o se renueva?' },
-  { id: 'ambiente',  emoji: '🌍', name: 'Ambiente', q: '¿Contamina o no?' },
-  { id: 'cifra',     emoji: '🔢', name: 'Número', q: '¿El número es creíble?' },
+/* Conceptos para justificar la inspección */
+const CONCEPTS = [
+  { id: 'medio',     emoji: '⚙️', name: 'Medio técnico', q: '¿Esa pieza es de esta central?' },
+  { id: 'orden',     emoji: '🔄', name: 'Orden del proceso', q: '¿Los pasos están en orden?' },
+  { id: 'energia',   emoji: '⚡', name: 'Transformación de energía', q: '¿Esa pieza transforma esa energía?' },
+  { id: 'fuente',    emoji: '🌞', name: 'Fuente o recurso', q: '¿Ese es el recurso que usa la central?' },
+  { id: 'renovable', emoji: '♻️', name: 'Renovable o no renovable', q: '¿El recurso se acaba o se renueva?' },
+  { id: 'ambiente',  emoji: '🌍', name: 'Impacto ambiental', q: '¿Contamina o no?' },
+  { id: 'cifra',     emoji: '🔢', name: 'Números y medidas', q: '¿El número es creíble?' },
   { id: 'contexto',  emoji: '📍', name: 'Lugar', q: '¿Es de Ushuaia o de otro lugar?' }
 ];
 
 const SOURCES = ['material de lectura de clase', 'Carpeta técnica', 'Educ.ar', 'Secretaría de Energía', 'INTA', 'Gobierno de Tierra del Fuego'];
 
-/* Gancho inicial: el apagón */
-const HOOK = {
-  kicker: 'ÚLTIMO MOMENTO · Ushuaia',
-  title: 'Apagón total: Ushuaia quedó a oscuras',
-  text: 'A las 17:42 se cortó la luz en toda la ciudad. Los semáforos se apagaron, el puerto se detuvo y los negocios cerraron. Para volver a encender Ushuaia, primero hay que saber de dónde viene su electricidad.',
-  question: '¿De dónde sale la electricidad que llega a tu casa en Ushuaia?',
-  options: {
-    A: 'Llega por cables desde las represas del norte del país',
-    B: 'De una central térmica de la ciudad que quema gas',
-    C: 'De un parque eólico en el Canal Beagle',
-    D: 'De paneles solares en los techos de la ciudad'
-  },
-  answer: 'B',
-  reveal: 'Respuesta B. Tierra del Fuego no está conectada a la red eléctrica del resto del país. Ushuaia fabrica su propia electricidad en una central térmica que quema gas natural. Si esa central se detiene, la ciudad se apaga. (Tranquilos: este apagón es un simulacro.) Hoy cada equipo tiene una central para volver a encender Ushuaia.'
-};
-
-/* Dilemas del Consejo energético */
-const DILEMMAS = [
-  { tag: 'Térmica o eólica',
-    text: 'Ushuaia hace casi toda su electricidad quemando gas. ¿Habría que cambiarla por molinos de viento, aunque el viento no sople todos los días?' },
-  { tag: 'Hidráulica',
-    text: 'Quieren hacer una represa en un río cerca de Ushuaia. Daría energía limpia, pero inundaría una parte del bosque. ¿Están de acuerdo?' },
-  { tag: 'Nuclear',
-    text: 'Ofrecen poner una central nuclear chica en Tierra del Fuego. No larga humo, pero deja residuos peligrosos que hay que guardar por muchísimos años. ¿La aceptarían?' },
-  { tag: 'Biomasa',
-    text: 'El municipio quiere un biodigestor que use la basura orgánica de la ciudad. Para que funcione, todas las familias tienen que separar la basura. ¿Están de acuerdo?' },
-  { tag: 'Solar',
-    text: 'En invierno, en Ushuaia hay muy pocas horas de sol. ¿Conviene igual poner paneles solares en los techos de las escuelas?' }
+/* Fase 2 · El apagón: preguntas (se responden de a una, cada estudiante) */
+const QUIZ = [
+  { tag: 'Ushuaia', story: true,
+    q: '¿De dónde sale la electricidad que llega a tu casa en Ushuaia?',
+    opts: { A: 'Llega por cables desde las represas del norte del país', B: 'De una central térmica de la ciudad que quema gas', C: 'De un parque eólico en el Canal Beagle', D: 'De paneles solares en los techos de la ciudad' },
+    ans: 'B', why: 'Tierra del Fuego no está conectada a la red eléctrica del resto del país. Ushuaia fabrica su propia electricidad en una central térmica que quema gas natural. Si esa central se detiene, la ciudad se apaga.' },
+  { tag: 'Fuente o tipo',
+    q: '¿Cuál de estas es una FUENTE de energía (un recurso de la naturaleza)?',
+    opts: { A: 'La energía cinética', B: 'El viento', C: 'La energía térmica', D: 'La energía eléctrica' },
+    ans: 'B', why: 'La fuente es el recurso de donde sacamos la energía: el viento, el sol, el agua, el gas. Cinética, térmica y eléctrica son TIPOS (formas) de energía.' },
+  { tag: 'Fuente o tipo',
+    q: '¿Cuál de estas es un TIPO (forma) de energía?',
+    opts: { A: 'El sol', B: 'El petróleo', C: 'La energía lumínica', D: 'El uranio' },
+    ans: 'C', why: 'La energía lumínica es una forma de energía (la luz). El sol, el petróleo y el uranio son fuentes: recursos que tienen energía guardada.' },
+  { tag: 'Tipos de energía',
+    q: 'El viento es aire en movimiento. ¿Qué tipo de energía tiene?',
+    opts: { A: 'Química', B: 'Cinética', C: 'Nuclear', D: 'Lumínica' },
+    ans: 'B', why: 'Todo lo que se mueve tiene energía cinética. Las aspas del aerogenerador la aprovechan para girar.' },
+  { tag: 'Tipos de energía',
+    q: 'El gas natural y el biogás tienen energía guardada que se libera al quemarlos. ¿Qué tipo de energía es?',
+    opts: { A: 'Química', B: 'Potencial', C: 'Lumínica', D: 'Eléctrica' },
+    ans: 'A', why: 'Los combustibles guardan energía química. Al quemarlos, se transforma en energía térmica (calor).' },
+  { tag: 'Recursos',
+    q: '¿Qué recurso usa una central hidráulica?',
+    opts: { A: 'Agua de un río acumulada en altura', B: 'Gas natural', C: 'Uranio', D: 'Basura orgánica' },
+    ans: 'A', why: 'La represa junta el agua del río en altura (energía potencial). Al bajar, el agua mueve la turbina.' },
+  { tag: 'Recursos',
+    q: '¿Qué recurso usa una central nuclear?',
+    opts: { A: 'Carbón', B: 'Uranio', C: 'Viento', D: 'Biogás' },
+    ans: 'B', why: 'En el reactor, los átomos de uranio se parten (fisión) y liberan muchísimo calor.' },
+  { tag: 'Recursos',
+    q: '¿Qué recurso usa una central de biomasa con biodigestor?',
+    opts: { A: 'Luz del sol', B: 'Restos de comida y estiércol', C: 'Petróleo', D: 'Agua de mar' },
+    ans: 'B', why: 'En el biodigestor, la basura orgánica se descompone sin aire y produce biogás, que después se quema.' },
+  { tag: 'Renovables',
+    q: '¿Cuál de estos recursos es NO renovable?',
+    opts: { A: 'El viento', B: 'El sol', C: 'El gas natural', D: 'El agua de un río' },
+    ans: 'C', why: 'El gas natural tardó millones de años en formarse y se acaba. El viento, el sol y el agua de los ríos se renuevan.' },
+  { tag: 'Medios técnicos',
+    q: 'Casi todas las centrales tienen una pieza que transforma la energía mecánica (el giro) en eléctrica. ¿Cuál es?',
+    opts: { A: 'El transformador', B: 'El generador', C: 'La caldera', D: 'El inversor' },
+    ans: 'B', why: 'El generador tiene imanes y bobinas: cuando su eje gira, produce electricidad. La central solar es la excepción: no tiene nada que gire.' }
 ];
 
-/* Puntaje */
-const POINTS = { hook: 20, piece: 20, energy: 10, lit: 100, litStep: 20, litMin: 20, detected: 60, justified: 20, fooled: 60, dilemma: 10 };
+/* Fase 6 · Consejo energético: afirmaciones para debatir y votar (tienen respuesta correcta) */
+const COUNCIL = [
+  { tag: 'Eólica', text: 'Si Ushuaia cambiara toda su central térmica por molinos de viento, nunca más tendría cortes de luz.',
+    ans: 'no', why: 'El viento no sopla siempre con la misma fuerza. Haría falta otra central de respaldo o una forma de guardar la energía.' },
+  { tag: 'Hidráulica', text: 'Una represa usa un recurso renovable, pero igual puede dañar el ambiente.',
+    ans: 'si', why: 'El agua se renueva, pero el embalse inunda bosques y cambia la vida del río y de los animales.' },
+  { tag: 'Nuclear', text: 'Una central nuclear no larga humo, pero sus residuos son peligrosos durante muchísimos años.',
+    ans: 'si', why: 'No emite gases al quemar, porque no quema nada. Pero los residuos radiactivos hay que guardarlos con mucho cuidado por siglos.' },
+  { tag: 'Biomasa', text: 'Un biodigestor sirve para producir energía y, además, ayuda a reducir la basura orgánica.',
+    ans: 'si', why: 'Aprovecha restos de comida y estiércol que irían a la basura y los convierte en biogás. También deja un abono para la tierra.' },
+  { tag: 'Solar', text: 'En Ushuaia no sirve poner paneles solares porque en invierno hay pocas horas de sol.',
+    ans: 'no', why: 'En invierno hay poco sol, pero en verano hay días muy largos. Los paneles se pueden combinar con otras centrales.' },
+  { tag: 'Térmica', text: 'La central térmica a gas es renovable porque el gas sale de la naturaleza.',
+    ans: 'no', why: 'Que salga de la naturaleza no lo hace renovable: el gas tarda millones de años en formarse y se acaba.' }
+];
+
+/* Puntaje individual */
+const POINTS = {
+  quiz: 10,        // respuesta correcta en El apagón
+  miss: -5,        // pregunta sin responder (apagón, inspección, consejo)
+  piece: 10,       // taller: pieza en su lugar (1.er envío, para cada integrante)
+  energy: 5,       // taller: transformación correcta (1.er envío)
+  perfect: 30,     // taller: cadena perfecta al 1.er envío
+  detected: 20,    // inspección: descubrió la trampa
+  concept: 5,      // inspección: además marcó conceptos y explicó
+  fooled: 3,       // sabotaje: por cada estudiante engañado (para cada integrante del equipo)
+  council: 10,     // consejo: postura correcta
+  depends: -5      // consejo: eligió "Depende"
+};
 
 function teamById(id) { return TEAMS.find(t => t.id === id); }
 function roleById(id) { return ROLES.find(r => r.id === id); }
-function teamChain(st, team) { return ((st && st.chains) || []).find(c => c.team === team) || null; }
+function teamChain(st, team) { return ((st && st.chains) || []).find(c => c.t === team) || null; }
+function memberBySid(st, sid) { return ((st && st.members) || []).find(m => m.s === sid) || null; }
 
-/* Evalúa la cadena armada por un equipo */
+/* Evalúa una cadena y explica cada error */
 function evalChain(team, chain) {
   const tm = teamById(team), sol = tm.chain, want = {};
   sol.forEach(([c, e]) => want[c] = e);
   chain = chain || [];
   let pos = 0, en = 0;
-  chain.forEach((x, i) => {
-    if (sol[i] && sol[i][0] === x.c) pos++;
-    if (want[x.c] && want[x.c] === x.e) en++;
+  const rows = chain.map((x, i) => {
+    const intruder = !want[x.c];
+    const posOk = !!sol[i] && sol[i][0] === x.c;
+    const enOk = !intruder && want[x.c] === x.e;
+    if (posOk) pos++;
+    if (enOk) en++;
+    return { c: x.c, e: x.e, intruder, posOk, enOk, rightE: want[x.c] || '', rightPos: sol.findIndex(s => s[0] === x.c) };
   });
+  const used = chain.map(x => x.c);
+  const missing = sol.filter(([c]) => !used.includes(c)).map(([c]) => c);
   const perfect = chain.length === sol.length && pos === sol.length && en === sol.length;
-  return { pos, en, n: sol.length, len: chain.length, perfect };
+  return { pos, en, n: sol.length, rows, missing, perfect };
 }
 
 function tallerPoints(team, rec) {
-  if (!rec) return 0;
-  const r = evalChain(team, rec.chain);
-  let p = r.pos * POINTS.piece + r.en * POINTS.energy;
-  if (r.perfect) p += Math.max(POINTS.litMin, POINTS.lit - POINTS.litStep * (Math.max(1, rec.attempts) - 1));
-  return p;
+  if (!rec || !rec.first) return 0;
+  const r = evalChain(team, rec.first);
+  return r.pos * POINTS.piece + r.en * POINTS.energy + (r.perfect ? POINTS.perfect : 0);
 }
+function isLit(st, team) { const r = teamChain(st, team); return !!r && evalChain(team, r.last).perfect; }
 
-function isLit(st, team) { const r = teamChain(st, team); return !!r && evalChain(team, r.chain).perfect; }
+function findAnswer(st, k, i, sid) { return ((st && st.answers) || []).find(a => a.k === k && a.i === String(i) && a.s === sid) || null; }
 
+/* Puntaje de cada estudiante y promedio por equipo */
 function computeScores(st) {
-  const out = {};
-  TEAMS.forEach(t => out[t.id] = { total: 0, hook: 0, taller: 0, detected: 0, justified: 0, fooled: 0, dilemmas: 0, bonus: 0 });
-  if (!st) return out;
-  const c = st.control || {};
-  const revealed = c.revealed || [];
-  const fakeSlot = {};
-  (st.facts || []).forEach(n => { if (n.isFake === true) fakeSlot[n.team] = n.slot; });
-  (st.votes || []).forEach(v => {
-    if (!out[v.team]) return;
-    if (v.kind === 'apagon' && c.hookRevealed && v.pick === HOOK.answer) out[v.team].hook += POINTS.hook;
-    if (v.kind === 'inspeccion' && revealed.indexOf(v.target) >= 0 && fakeSlot[v.target] && v.team !== v.target) {
-      if (v.pick === fakeSlot[v.target]) {
-        out[v.team].detected += POINTS.detected;
-        if ((v.clues || []).length >= 1 && (v.why || '').length >= 15) out[v.team].justified += POINTS.justified;
-      } else if (out[v.target]) {
-        out[v.target].fooled += POINTS.fooled;
-      }
-    }
+  const S = {}, T = {};
+  TEAMS.forEach(t => T[t.id] = { sum: 0, n: 0, avg: 0, lit: false });
+  if (!st) return { students: S, teams: T };
+  const c = st.control || {}, revTs = c.revTs || {};
+  const members = st.members || [];
+  members.forEach(m => S[m.s] = { sid: m.s, name: m.n, team: m.t, role: m.r, quiz: 0, taller: 0, ins: 0, fooled: 0, council: 0, bonus: 0, total: 0, misses: 0 });
+  const before = (m, key) => !revTs[key] || m.ts <= revTs[key];
+
+  (c.qRev || []).forEach(qi => {
+    const q = QUIZ[qi]; if (!q) return;
+    members.forEach(m => {
+      if (!before(m, 'q' + qi)) return;
+      const a = findAnswer(st, 'q', qi, m.s);
+      if (!a) { S[m.s].quiz += POINTS.miss; S[m.s].misses++; }
+      else if (a.p === q.ans) S[m.s].quiz += POINTS.quiz;
+    });
   });
-  (st.chains || []).forEach(r => { if (out[r.team]) out[r.team].taller = tallerPoints(r.team, r); });
-  (st.dilemmas || []).forEach(d => { if (out[d.team]) out[d.team].dilemmas += POINTS.dilemma; });
-  (st.bonus || []).forEach(b => { if (out[b.team]) out[b.team].bonus += Number(b.points) || 0; });
-  Object.values(out).forEach(o => o.total = o.hook + o.taller + o.detected + o.justified + o.fooled + o.dilemmas + o.bonus);
-  return out;
+
+  const fakeSlot = {};
+  (st.facts || []).forEach(n => { if (n.isFake === true) fakeSlot[n.t] = n.slot; });
+  (c.revealed || []).forEach(target => {
+    if (!fakeSlot[target]) return;
+    let fooled = 0;
+    members.forEach(m => {
+      if (m.t === target || !before(m, 'i:' + target)) return;
+      const a = findAnswer(st, 'i', target, m.s);
+      if (!a) { S[m.s].ins += POINTS.miss; S[m.s].misses++; }
+      else if (a.p === fakeSlot[target]) S[m.s].ins += POINTS.detected + ((a.c || []).length >= 1 && (a.w || '').trim().length >= 10 ? POINTS.concept : 0);
+      else fooled++;
+    });
+    members.forEach(m => { if (m.t === target) S[m.s].fooled += fooled * POINTS.fooled; });
+  });
+
+  (c.dRev || []).forEach(di => {
+    const d = COUNCIL[di]; if (!d) return;
+    members.forEach(m => {
+      if (!before(m, 'c' + di)) return;
+      const a = findAnswer(st, 'c', di, m.s);
+      if (!a) { S[m.s].council += POINTS.miss; S[m.s].misses++; }
+      else if (a.p === 'depende') S[m.s].council += POINTS.depends;
+      else if (a.p === d.ans) S[m.s].council += POINTS.council;
+    });
+  });
+
+  (st.chains || []).forEach(r => { const p = tallerPoints(r.t, r); members.forEach(m => { if (m.t === r.t) S[m.s].taller = p; }); });
+  (st.bonus || []).forEach(b => members.forEach(m => { if (m.t === b.t) S[m.s].bonus += Number(b.p) || 0; }));
+
+  Object.values(S).forEach(s => {
+    s.total = s.quiz + s.taller + s.ins + s.fooled + s.council + s.bonus;
+    if (T[s.team]) { T[s.team].sum += s.total; T[s.team].n++; }
+  });
+  Object.keys(T).forEach(k => { T[k].avg = T[k].n ? Math.round(T[k].sum / T[k].n) : 0; T[k].lit = isLit(st, k); });
+  return { students: S, teams: T };
 }
 
-/* Rondas de inspección reveladas: quién detectó y quién cayó en la trampa */
+/* Rondas de inspección reveladas */
 function inspectionRounds(st) {
   if (!st) return [];
   const c = st.control || {};
   const fakeSlot = {};
-  (st.facts || []).forEach(n => { if (n.isFake === true) fakeSlot[n.team] = n.slot; });
+  (st.facts || []).forEach(n => { if (n.isFake === true) fakeSlot[n.t] = n.slot; });
   return (c.revealed || []).map(target => {
-    const votes = (st.votes || []).filter(v => v.kind === 'inspeccion' && v.target === target && v.team !== target);
-    const fooled = votes.filter(v => v.pick !== fakeSlot[target]).map(v => v.team);
-    const caught = votes.filter(v => v.pick === fakeSlot[target]).map(v => v.team);
-    return { target, fooled, caught, fake: fakeSlot[target] };
+    const ans = (st.answers || []).filter(a => a.k === 'i' && a.i === target);
+    return { target, fake: fakeSlot[target], fooled: ans.filter(a => a.p !== fakeSlot[target]).length, caught: ans.filter(a => a.p === fakeSlot[target]).length, total: ans.length };
   });
 }

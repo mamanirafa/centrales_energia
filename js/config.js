@@ -7,7 +7,7 @@
    teacherPin: el mismo PIN que pusiste en Code.gs (solo modo local).
    ========================================================= */
 window.APAGON_CONFIG = {
-  scriptUrl: 'https://script.google.com/macros/s/AKfycbxLVNt-INvUh_dkGFSjzsMk6RxojPjFf8PhGgkiKPOw8m4s58auOYMP0z_kfDlpytldsg/exec',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbxdqQVDe8PdCbXHRCtK6oyLwSuh7a5iL078C5cx5xZL4h5dQk3lr7goIuAVE-V9OGAm-Q/exec',
   teacherPin: '2026',
   pollMs: 4000
 };

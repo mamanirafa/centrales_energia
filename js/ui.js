@@ -20,8 +20,10 @@ function errText(e) {
 }
 
 function phaseIdx(id) { return PHASES.findIndex(p => p.id === id); }
-function teamMembers(st, team) { return ((st && st.members) || []).filter(m => m.team === team); }
-function teamFacts(st, team) { return ((st && st.facts) || []).filter(n => n.team === team).sort((a, b) => a.slot.localeCompare(b.slot)); }
+function teamMembers(st, team) { return ((st && st.members) || []).filter(m => m.t === team); }
+function teamFacts(st, team) { return ((st && st.facts) || []).filter(n => n.t === team).sort((a, b) => a.slot.localeCompare(b.slot)); }
+function fmtTime(s) { s = Math.max(0, Math.round(s || 0)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function newSid() { return Math.random().toString(36).slice(2, 10).padEnd(8, '0'); }
 function linkify(src) {
   const s = esc(src);
   return /^https?:\/\//i.test(src) ? `<a href="${s}" target="_blank" rel="noopener">${s}</a>` : s;
@@ -59,7 +61,7 @@ function cityArt(lit, opts = {}) {
     bld += `<text x="${x0 + gw / 2}" y="${opts.labels === false ? -10 : 242}" text-anchor="middle" font-size="18" opacity="${on ? 1 : .35}">${tm.emoji}</text>`;
   });
   const anyLit = lit.length > 0;
-  return `<svg viewBox="0 0 ${W} ${H}" class="city" role="img" aria-label="Ushuaia de noche">
+  return `<svg viewBox="0 0 ${W} ${H}" class="city" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Ushuaia de noche">
     <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${anyLit ? '#0b1f3a' : '#03060c'}"/><stop offset="1" stop-color="${anyLit ? '#173a5e' : '#070d18'}"/></linearGradient></defs>
     <rect width="${W}" height="${H}" fill="url(#sky)"/>
     ${[[60, 30], [140, 18], [260, 40], [380, 22], [470, 34], [540, 14]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="#fff" opacity=".7"/>`).join('')}
@@ -71,16 +73,23 @@ function cityArt(lit, opts = {}) {
   </svg>`;
 }
 
-function hookCard(revealed, pick) {
-  const opts = Object.entries(HOOK.options).map(([k, v]) => {
-    const cls = revealed ? (k === HOOK.answer ? 'right' : (k === pick ? 'wrongp' : '')) : (k === pick ? 'on' : '');
-    return `<div class="opt ${cls}" data-o="${k}"><b>${k}</b><span>${esc(v)}</span></div>`;
+/* Pregunta de opción múltiple (El apagón) */
+function quizCard(qi, opts = {}) {
+  const q = QUIZ[qi]; if (!q) return '';
+  const rev = !!opts.revealed, pick = opts.pick || '';
+  const counts = opts.counts || null;
+  const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
+  const options = Object.entries(q.opts).map(([k, v]) => {
+    const cls = rev ? (k === q.ans ? 'right' : (k === pick ? 'wrongp' : '')) : (k === pick ? 'on' : '');
+    const bar = counts && rev ? `<i class="obar" style="width:${total ? (counts[k] || 0) / total * 100 : 0}%"></i><em>${counts[k] || 0}</em>` : '';
+    return `<div class="opt ${cls}" data-o="${k}"><b>${k}</b><span>${esc(v)}</span>${bar}</div>`;
   }).join('');
-  return `<article class="news ${revealed ? 'real' : ''}">
-    <div class="kicker">${esc(HOOK.kicker)}</div>
-    <h4 style="margin-right:0">${esc(HOOK.title)}</h4>${cityArt(revealed ? ['termica'] : [], { labels: false })}<p>${esc(HOOK.text)}</p>
-  </article>
-  <h3 style="margin:16px 0 8px">${esc(HOOK.question)}</h3><div class="opts">${opts}</div>`;
+  const story = q.story ? `<article class="news ${rev ? 'real' : ''}"><div class="kicker">ÚLTIMO MOMENTO · Ushuaia</div>
+      <h4 style="margin-right:0">Apagón total: Ushuaia quedó a oscuras</h4>${cityArt(rev ? ['termica'] : [], { labels: false })}
+      <p>A las 17:42 se cortó la luz en toda la ciudad. Los semáforos se apagaron, el puerto se detuvo y los negocios cerraron. Para volver a encender Ushuaia, primero hay que saber de dónde viene su electricidad.</p></article>` : '';
+  return `${story}<div class="qhead"><span class="chip acc">${t('apagon.q', { n: qi + 1, m: QUIZ.length })}</span><span class="chip">${esc(q.tag)}</span></div>
+    <h3 class="qtext">${esc(q.q)}</h3><div class="opts">${options}</div>
+    ${opts.result || ''}${rev ? `<div class="why">💡 ${esc(q.why)}</div>` : ''}`;
 }
 
 /* Cadena de medios técnicos (diagrama de bloques) */
@@ -96,8 +105,9 @@ function chainDiagram(team, chain, opts = {}) {
 }
 
 function scoreRows(s) {
-  return ['hook', 'taller', 'detected', 'justified', 'fooled', 'dilemmas', 'bonus']
+  return ['quiz', 'taller', 'ins', 'fooled', 'council', 'bonus']
     .map(k => `<div><span>${t('sc.' + k)}</span><b>${s[k]}</b></div>`).join('') +
+    (s.misses ? `<div class="miss"><span>⏳ ${t('sc.misses')}</span><b>${s.misses}</b></div>` : '') +
     `<div class="tot"><span>${t('sc.total')}</span><span>${s.total} ${t('common.pts')}</span></div>`;
 }
 

@@ -8,8 +8,8 @@ const API = (() => {
   // ?api=URL permite probar otra Web App sin editar config.js
   const url = (params.get('api') || cfg.scriptUrl || '').trim();
   const online = /^https:\/\/script\.google(usercontent)?\.com\//.test(url);
-  const KEY = 'apagon_centrales_db_v1';
-  let state = null, listeners = [], errListeners = [], timer = null, inflight = false;
+  const KEY = 'apagon_centrales_db_v2';
+  let state = null, listeners = [], errListeners = [], timer = null, inflight = false, offset = 0;
 
   const local = {
     load() {
@@ -26,13 +26,15 @@ const API = (() => {
     if (inflight) return state;
     inflight = true;
     try {
+      const t0 = Date.now();
       if (online) {
-        const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=state&t=' + Date.now(), { cache: 'no-store' });
+        const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=state&t=' + t0, { cache: 'no-store' });
         const j = await r.json();
         if (j && j.control) { state = j; emitErr(null); }
       } else {
         state = ApagonCore.publicState(local.load());
       }
+      if (state && state.serverMs) offset = state.serverMs - Math.round((t0 + Date.now()) / 2);
       emit();
     } catch (e) { emitErr(e); }
     finally { inflight = false; }
@@ -67,8 +69,15 @@ const API = (() => {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   }
 
+  /* Segundos que le quedan al temporizador de la clase (sincronizado con el servidor) */
+  function timeLeft() {
+    const T = state && state.control && state.control.timer;
+    if (!T) return null;
+    return T.run ? Math.max(0, (T.end - (Date.now() + offset)) / 1000) : Math.max(0, Number(T.left) || 0);
+  }
+
   return {
-    online, start, refresh, send,
+    online, start, refresh, send, timeLeft,
     get state() { return state; },
     onState: f => listeners.push(f),
     onError: f => errListeners.push(f),
