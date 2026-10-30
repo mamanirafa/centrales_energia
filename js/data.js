@@ -135,7 +135,7 @@ const QUIZ = [
     opts: { A: 'Llega por cables desde las represas del norte del país', B: 'De una central térmica de la ciudad que quema gas', C: 'De un parque eólico en el Canal Beagle', D: 'De paneles solares en los techos de la ciudad' },
     ans: 'B', why: 'Tierra del Fuego no está conectada a la red eléctrica del resto del país. Ushuaia fabrica su propia electricidad en una central térmica que quema gas natural. Si esa central se detiene, la ciudad se apaga.' },
   { tag: 'Fuente o tipo',
-    q: '¿Cuál de estas es una FUENTE de energía (un recurso de la naturaleza)?',
+    q: '¿Cuál de estas opciones es un RECURSO ENERGETICO?',
     opts: { A: 'La energía cinética', B: 'El viento', C: 'La energía térmica', D: 'La energía eléctrica' },
     ans: 'B', why: 'La fuente es el recurso de donde sacamos la energía: el viento, el sol, el agua, el gas. Cinética, térmica y eléctrica son TIPOS (formas) de energía.' },
   { tag: 'Fuente o tipo',
